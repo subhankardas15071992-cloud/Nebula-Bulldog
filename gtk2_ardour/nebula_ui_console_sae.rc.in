@@ -1,0 +1,277 @@
+#
+# This is the GTK style file for Nebula Bulldog
+# Oldschool analog-console look: dark rack chassis, brushed-metal panels,
+# amber VU-meter accents, chrome knobs and vintage-style buttons.
+#
+
+style "console_text"
+{
+	font_name = "@FONT_NORMAL@"
+}
+
+style "console_small_text"
+{
+	font_name = "@FONT_SMALL@"
+}
+
+style "console_bold_text"
+{
+	font_name = "@FONT_BOLD_NORMAL@"
+}
+
+style "console_small_bold_text"
+{
+	font_name = "@FONT_BOLD_SMALL@"
+}
+
+style "console_large_text"
+{
+	font_name = "@FONT_LARGE@"
+}
+
+style "console_default_base" = "console_text"
+{
+	# Dark analog rack chassis
+	GtkWidget::cursor_color =  {0.90, 0.90, 0.85 }
+	GtkButton::default_border = { 0, 0, 0, 0 }
+	GtkButton::default_outside_border = { 0, 0, 0, 0 }
+	GtkButton::button_relief = GTK_RELIEF_NONE
+	GtkTreeView::vertical-padding = 0
+	GtkTreeView::horizontal-padding = 0
+	GtkTreeView::even-row-color = { 0.12, 0.12, 0.14 }
+	GtkTreeView::odd-row-color  = { 0.16, 0.16, 0.18 }
+
+	fg[NORMAL] = { 0.92, 0.90, 0.84 }
+	fg[ACTIVE] = { 1.0, 1.0, 1.0 }
+	fg[PRELIGHT] = { 1.0, 1.0, 1.0 }
+	fg[INSENSITIVE] = { 0.5, 0.5, 0.5 }
+	fg[SELECTED] = { 0.92, 0.90, 0.84 }
+
+	bg[NORMAL] = { 0.12, 0.12, 0.14 }
+	bg[ACTIVE] = { 0.18, 0.18, 0.20 }
+	bg[PRELIGHT] = { 0.22, 0.22, 0.24 }
+	bg[INSENSITIVE] = { 0.08, 0.08, 0.10 }
+	bg[SELECTED] = { 0.28, 0.22, 0.12 }
+
+	text[NORMAL] = { 0.92, 0.90, 0.84 }
+	text[ACTIVE] = { 1.0, 1.0, 1.0 }
+	text[PRELIGHT] = { 1.0, 1.0, 1.0 }
+	text[INSENSITIVE] = { 0.5, 0.5, 0.5 }
+	text[SELECTED] = { 1.0, 1.0, 1.0 }
+
+	base[NORMAL]     = { 0.09, 0.09, 0.10 }
+	base[ACTIVE]     = { 0.14, 0.14, 0.15 }
+	base[PRELIGHT]   = { 0.18, 0.18, 0.20 }
+	base[INSENSITIVE] = { 0.06, 0.06, 0.07 }
+	base[SELECTED]   = { 0.28, 0.22, 0.12 }
+
+	engine "clearlooks"
+	{
+		menubarstyle = 0
+	}
+}
+
+style "console_frame"
+{
+	fg[NORMAL] = { 0.92, 0.90, 0.84 }
+	bg[NORMAL] = { 0.16, 0.17, 0.19 }
+}
+
+style "console_button" = "console_default_base"
+{
+	font_name = "@FONT_SMALL@"
+	fg[ACTIVE] = { 1.0, 1.0, 1.0 }
+
+	bg[NORMAL] = { 0.22, 0.22, 0.24 }
+	bg[ACTIVE] = { 0.30, 0.30, 0.32 }
+	bg[PRELIGHT] = { 0.28, 0.28, 0.30 }
+	bg[INSENSITIVE] = { 0.14, 0.14, 0.15 }
+	bg[SELECTED] = { 0.28, 0.22, 0.12 }
+}
+
+style "console_amber_button" = "console_button"
+{
+	bg[NORMAL] = { 0.28, 0.20, 0.08 }
+	bg[ACTIVE] = { 0.45, 0.30, 0.10 }
+	bg[PRELIGHT] = { 0.45, 0.30, 0.10 }
+	bg[SELECTED] = { 0.45, 0.30, 0.10 }
+	fg[NORMAL] = { 1.0, 1.0, 1.0 }
+	fg[ACTIVE] = { 1.0, 1.0, 1.0 }
+}
+
+style "console_red_button" = "console_button"
+{
+	bg[NORMAL] = { 0.45, 0.08, 0.08 }
+	bg[ACTIVE] = { 0.70, 0.10, 0.10 }
+	bg[PRELIGHT] = { 0.70, 0.10, 0.10 }
+	bg[SELECTED] = { 0.70, 0.10, 0.10 }
+	fg[NORMAL] = { 1.0, 1.0, 1.0 }
+	fg[ACTIVE] = { 1.0, 1.0, 1.0 }
+}
+
+style "console_green_button" = "console_button"
+{
+	bg[NORMAL] = { 0.10, 0.45, 0.10 }
+	bg[ACTIVE] = { 0.15, 0.70, 0.15 }
+	bg[PRELIGHT] = { 0.15, 0.70, 0.15 }
+	bg[SELECTED] = { 0.15, 0.70, 0.15 }
+	fg[NORMAL] = { 0.0, 0.0, 0.0 }
+	fg[ACTIVE] = { 0.0, 0.0, 0.0 }
+}
+
+style "console_chrome_knob" = "console_default_base"
+{
+	bg[NORMAL] = { 0.55, 0.55, 0.58 }
+	bg[ACTIVE] = { 0.75, 0.75, 0.78 }
+	bg[PRELIGHT] = { 0.85, 0.85, 0.88 }
+	bg[INSENSITIVE] = { 0.30, 0.30, 0.32 }
+	bg[SELECTED] = { 0.75, 0.75, 0.78 }
+}
+
+style "console_gain_fader"
+{
+	# The channel fader - dark console fader with amber accent
+	bg[NORMAL] =   { 0.14, 0.14, 0.16 }
+	bg[ACTIVE] =   { 0.22, 0.16, 0.06 }
+}
+
+style "console_vu_meter"
+{
+	bg[NORMAL] = { 0.06, 0.06, 0.07 }
+	fg[NORMAL] = { 0.9, 0.6, 0.1 }
+}
+
+style "console_mixer_base"
+{
+	bg[NORMAL] = { 0.10, 0.10, 0.12 }
+}
+
+style "console_transport"
+{
+	bg[NORMAL] = { 0.06, 0.06, 0.07 }
+	bg[ACTIVE] = { 0.06, 0.06, 0.07 }
+	bg[PRELIGHT] = { 0.06, 0.06, 0.07 }
+	bg[INSENSITIVE] = { 0.06, 0.06, 0.07 }
+	bg[SELECTED] = { 0.06, 0.06, 0.07 }
+}
+
+style "console_transport_button"
+{
+	bg[NORMAL] = { 0.22, 0.22, 0.24 }
+	bg[ACTIVE] = { 0.30, 0.30, 0.32 }
+	bg[PRELIGHT] = { 0.28, 0.28, 0.30 }
+	bg[INSENSITIVE] = { 0.14, 0.14, 0.15 }
+	bg[SELECTED] = { 0.28, 0.22, 0.12 }
+	fg[NORMAL] = { 0.92, 0.90, 0.84 }
+	fg[ACTIVE] = { 1.0, 1.0, 1.0 }
+}
+
+style "console_transport_rec_active"
+{
+	bg[NORMAL] = { 0.55, 0.08, 0.08 }
+	bg[ACTIVE] = { 0.8, 0.1, 0.1 }
+	bg[SELECTED] = { 0.8, 0.1, 0.1 }
+	bg[PRELIGHT] = { 0.8, 0.1, 0.1 }
+	fg[NORMAL] = { 1.0, 1.0, 1.0 }
+}
+
+style "console_scrollbar" = "console_default_base"
+{
+	GtkRange::slider_width = 14
+	GtkScrollbar::slider_width = 14
+	bg[NORMAL] = { 0.18, 0.18, 0.20 }
+	bg[ACTIVE] = { 0.30, 0.30, 0.32 }
+}
+
+style "console_menu" = "console_default_base"
+{
+	font_name = "@FONT_NORMAL@"
+	bg[NORMAL] = { 0.12, 0.12, 0.14 }
+	bg[ACTIVE] = { 0.28, 0.22, 0.12 }
+	fg[NORMAL] = { 0.92, 0.90, 0.84 }
+	fg[ACTIVE] = { 1.0, 1.0, 1.0 }
+}
+
+style "console_notebook"
+{
+	bg[NORMAL] = { 0.10, 0.10, 0.12 }
+	GtkNotebook::tab-overlap = 0
+}
+
+style "console_combo" = "console_button"
+{
+}
+
+style "console_entry"
+{
+	font_name = "@FONT_NORMAL@"
+	fg[NORMAL] = { 1.0, 1.0, 1.0 }
+	fg[ACTIVE] = { 1.0, 1.0, 1.0 }
+	base[NORMAL] = { 0.09, 0.09, 0.10 }
+	base[ACTIVE] = { 0.14, 0.14, 0.15 }
+	bg[NORMAL] = { 0.16, 0.16, 0.18 }
+	bg[ACTIVE] = { 0.16, 0.16, 0.18 }
+}
+
+# Named widget styles referenced by Ardour's mixer/editor code
+style "BaseFrame" = "console_frame"
+{
+	xthickness = 2
+	ythickness = 2
+}
+
+style "trim knob" = "console_chrome_knob"
+{
+	xthickness = 0
+	ythickness = 0
+}
+
+style "mixer strip button" = "console_button"
+{
+	xthickness = 0
+	ythickness = 0
+	font_name = "@FONT_SMALL@"
+}
+
+style "tracknumber label" = "console_small_text"
+{
+	fg[NORMAL] = { 0.7, 0.7, 0.75 }
+}
+
+style "midi input button" = "console_button"
+{
+	xthickness = 0
+	ythickness = 0
+}
+
+style "gain_fader" = "console_gain_fader"
+{
+}
+
+style "AudioBusStripBase" = "console_mixer_base"
+{
+}
+
+style "solo isolate" = "console_green_button"
+{
+	xthickness = 0
+	ythickness = 0
+	font_name = "@FONT_SMALLER@"
+}
+
+style "solo safe" = "console_amber_button"
+{
+	xthickness = 0
+	ythickness = 0
+	font_name = "@FONT_SMALLER@"
+}
+
+# Bindings
+widget_class "*" style "console_default_base"
+widget "*.GtkButton" style "console_button"
+widget "*.GtkFrame" style "console_frame"
+widget "*.GtkNotebook" style "console_notebook"
+widget "*.GtkEntry" style "console_entry"
+widget "*.GtkComboBox" style "console_combo"
+widget "*.GtkMenuBar" style "console_menu"
+widget "*.GtkMenu" style "console_menu"

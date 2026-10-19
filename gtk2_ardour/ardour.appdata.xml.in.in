@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>@ARDOUR_EXEC@.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <name>Nebula Bulldog</name>
+  <releases>
+    <release version="@VERSION@" date="@DATE@" />
+  </releases>
+  <summary>Digital Audio Workstation</summary>
+  <description>
+    <p>
+      Nebula Bulldog is a refined multi-channel digital audio workstation with an
+      oldschool analog-console look, allowing you to record, edit, mix and master
+      audio and MIDI projects.
+    </p>
+    <p>
+      It is targeted at audio engineers, musicians, soundtrack editors and composers
+      who want the character of a vintage console in a modern DAW.
+    </p>
+  </description>
+  <url type="bugtracker">Project support.</url>
+  <url type="contribute">Project development.</url>
+  <url type="homepage">Project homepage.</url>
+  <screenshots>
+      <screenshot type="default">
+        <image>https://community.ardour.org/files/images/ardour-editor-window-1600x900.png</image>
+        <caption>The Editor window where you can arrange audio and MIDI data along a timeline</caption>
+      </screenshot>
+      <screenshot>
+        <image>https://community.ardour.org/files/images/ardour-mixer-window-1600x900.png</image>
+        <caption>The Mixer window which includes channel strips for each track and bus</caption>
+      </screenshot>
+  </screenshots>
+  <keywords>
+    <keyword>Nebula Bulldog</keyword>
+    <keyword>DAW</keyword>
+    <keyword>Digital Audio Workstation</keyword>
+    <keyword>Mixing</keyword>
+    <keyword>Mastering</keyword>
+    <keyword>console</keyword>
+  </keywords>
+</component>
