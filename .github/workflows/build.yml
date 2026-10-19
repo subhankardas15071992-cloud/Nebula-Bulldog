@@ -18,7 +18,7 @@ concurrency:
 
 env:
   PROGRAM_NAME: Nebula Bulldog
-  # waf needs a full clone for `git describe` versioning; fetch all tags/branches
+  # waf needs a full clone for `git describe` versioning
   FETCH_DEPTH: 0
 
 jobs:
@@ -39,17 +39,26 @@ jobs:
         run: |
           brew update
           brew install \
-            autoconf automake libtool pkg-config \
+            autoconf automake libtool pkg-config llvm \
             glib glibmm gtkmm3 liblo taglib libarchive libsndfile libusb \
             rubberband vamp-plugin-sdk fftw curl boost \
             jsoncpp lilv serd sord sratom lrdf suil \
-            xz gettext intltool || true
+            xz gettext intltool
+
+      - name: Export Homebrew paths (x86_64)
+        run: |
+          BREW_PREFIX=/usr/local
+          echo "CPPFLAGS=-I${BREW_PREFIX}/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${BREW_PREFIX}/lib" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${BREW_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
+          echo "PATH=${BREW_PREFIX}/opt/llvm/bin:${PATH}" >> $GITHUB_ENV
 
       - name: Configure waf (x86_64 macOS)
         run: |
           python3 waf configure \
             --program-name="Nebula Bulldog" \
             --dist-target=auto \
+            --boost-include=/usr/local/include \
             --no-phone-home \
             --no-dr-mingw \
             --no-lxvst --no-vst3 --no-lrdf \
@@ -63,9 +72,10 @@ jobs:
       - name: Locate macOS binary
         id: locate
         run: |
-          BIN=$(find build -maxdepth 3 -type f -name 'nebula-bulldog-*' -o -name 'ardour-*' | head -n1)
+          BIN=$(find build -maxdepth 3 -type f \( -name 'nebula-bulldog-*' -o -name 'ardour-*' \) | head -n1)
           echo "binary=$BIN" >> $GITHUB_OUTPUT
           ls -lh "$BIN"
+          file "$BIN"
 
       - name: Upload macOS x86_64 artifact
         uses: actions/upload-artifact@v4
@@ -91,11 +101,19 @@ jobs:
         run: |
           brew update
           brew install \
-            autoconf automake libtool pkg-config \
+            autoconf automake libtool pkg-config llvm \
             glib glibmm gtkmm3 liblo taglib libarchive libsndfile libusb \
             rubberband vamp-plugin-sdk fftw curl boost \
             jsoncpp lilv serd sord sratom lrdf suil \
-            xz gettext intltool || true
+            xz gettext intltool
+
+      - name: Export Homebrew paths (arm64)
+        run: |
+          BREW_PREFIX=/opt/homebrew
+          echo "CPPFLAGS=-I${BREW_PREFIX}/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${BREW_PREFIX}/lib" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${BREW_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
+          echo "PATH=${BREW_PREFIX}/opt/llvm/bin:${PATH}" >> $GITHUB_ENV
 
       - name: Configure waf (arm64 macOS)
         run: |
@@ -103,6 +121,7 @@ jobs:
             --program-name="Nebula Bulldog" \
             --dist-target=auto \
             --arm64 \
+            --boost-include=/opt/homebrew/include \
             --no-phone-home \
             --no-dr-mingw \
             --no-lxvst --no-vst3 --no-lrdf \
@@ -129,7 +148,7 @@ jobs:
           retention-days: 7
 
   #
-  # Windows x86_64 — windows-latest (MinGW cross/native build)
+  # Windows x86_64 — windows-latest (UCRT64 MinGW build)
   #
   windows-x86_64:
     runs-on: windows-latest
@@ -141,33 +160,23 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Set up MSYS2
+      - name: Set up MSYS2 (UCRT64)
         uses: msys2/setup-msys2@v2
         with:
+          msystem: ucrt64
           update: true
           install: >
             base-devel git python mercurial
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-glib2
-            mingw-w64-x86_64-glibmm
-            mingw-w64-x86_64-gtkmm3
-            mingw-w64-x86_64-pkgconf
-            mingw-w64-x86_64-liblo
-            mingw-w64-x86_64-taglib
-            mingw-w64-x86_64-libarchive
-            mingw-w64-x86_64-libsndfile
-            mingw-w64-x86_64-rubberband
-            mingw-w64-x86_64-fftw
-            mingw-w64-x86_64-curl
-            mingw-w64-x86_64-boost
-            mingw-w64-x86_64-lilv
-            mingw-w64-x86_64-serd
-            mingw-w64-x86_64-sord
-            mingw-w64-x86_64-sratom
-            mingw-w64-x86_64-lrdf
-            mingw-w64-x86_64-suil
-            mingw-w64-x86_64-gettext
-            mingw-w64-x86_64-intltool
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-glib2
+            mingw-w64-ucrt-x86_64-curl
+            mingw-w64-ucrt-x86_64-boost
+            mingw-w64-ucrt-x86_64-fftw
+            mingw-w64-ucrt-x86_64-libarchive
+            mingw-w64-ucrt-x86_64-libsndfile
+            mingw-w64-ucrt-x86_64-taglib
+            mingw-w64-ucrt-x86_64-gettext
 
       - name: Configure waf (Windows x86_64 MinGW)
         shell: msys2 {0}
@@ -202,7 +211,7 @@ jobs:
           retention-days: 7
 
   #
-  # Windows arm64 — windows-11-arm (native ARM64 builder)
+  # Windows arm64 — windows-11-arm (native ARM64 UCRT build)
   #
   windows-arm64:
     runs-on: windows-11-arm
@@ -214,33 +223,23 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Set up MSYS2
+      - name: Set up MSYS2 (UCRT64 arm64)
         uses: msys2/setup-msys2@v2
         with:
+          msystem: ucrt64
           update: true
           install: >
             base-devel git python mercurial
-            mingw-w64-aarch64-toolchain
-            mingw-w64-aarch64-glib2
-            mingw-w64-aarch64-glibmm
-            mingw-w64-aarch64-gtkmm3
-            mingw-w64-aarch64-pkgconf
-            mingw-w64-aarch64-liblo
-            mingw-w64-aarch64-taglib
-            mingw-w64-aarch64-libarchive
-            mingw-w64-aarch64-libsndfile
-            mingw-w64-aarch64-rubberband
-            mingw-w64-aarch64-fftw
-            mingw-w64-aarch64-curl
-            mingw-w64-aarch64-boost
-            mingw-w64-aarch64-lilv
-            mingw-w64-aarch64-serd
-            mingw-w64-aarch64-sord
-            mingw-w64-aarch64-sratom
-            mingw-w64-aarch64-lrdf
-            mingw-w64-aarch64-suil
-            mingw-w64-aarch64-gettext
-            mingw-w64-aarch64-intltool
+            mingw-w64-ucrt-aarch64-toolchain
+            mingw-w64-ucrt-aarch64-pkgconf
+            mingw-w64-ucrt-aarch64-glib2
+            mingw-w64-ucrt-aarch64-curl
+            mingw-w64-ucrt-aarch64-boost
+            mingw-w64-ucrt-aarch64-fftw
+            mingw-w64-ucrt-aarch64-libarchive
+            mingw-w64-ucrt-aarch64-libsndfile
+            mingw-w64-ucrt-aarch64-taglib
+            mingw-w64-ucrt-aarch64-gettext
 
       - name: Configure waf (Windows arm64 MinGW)
         shell: msys2 {0}
