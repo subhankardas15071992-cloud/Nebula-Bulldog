@@ -221,69 +221,10 @@ jobs:
           retention-days: 7
 
   #
-  # Windows arm64 — ubuntu-latest (cross-compile to Windows ARM64)
-  #
-  windows-arm64:
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive
-
-      - name: Install Windows ARM64 cross-compilation toolchain
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y \
-            g++-mingw-w64-aarch64 \
-            pkg-config \
-            autoconf automake libtool \
-            git python3 mercurial
-
-      - name: Configure waf (Windows arm64 cross-compile)
-        env:
-          CC: aarch64-w64-mingw32-gcc
-          CXX: aarch64-w64-mingw32-g++
-          PKG_CONFIG_LIBDIR: /usr/aarch64-w64-mingw32/lib/pkgconfig
-        run: |
-          python waf configure \
-            --program-name="Nebula Bulldog" \
-            --dist-target=mingw \
-            --no-phone-home \
-            --no-dr-mingw \
-            --no-lxvst --no-vst3 --no-lrdf \
-            --no-nls \
-            --internal-shared-libs
-
-      - name: Build Nebula Bulldog (Windows arm64 cross-compile)
-        env:
-          CC: aarch64-w64-mingw32-gcc
-          CXX: aarch64-w64-mingw32-g++
-        run: |
-          python waf build -j$(nproc)
-
-      - name: Locate Windows ARM64 binary
-        id: locate
-        run: |
-          BIN=$(find build -maxdepth 3 -type f \( -name 'nebula-bulldog-*.exe' -o -name 'ardour-*.exe' \) | head -n1)
-          echo "binary=$BIN" >> $GITHUB_OUTPUT
-          ls -lh "$BIN"
-          file "$BIN"
-
-      - name: Upload Windows arm64 artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nebula-bulldog-windows-arm64
-          path: ${{ steps.locate.outputs.binary }}
-          retention-days: 7
-
-  #
   # Summary: list all produced artifacts
   #
   artifacts-summary:
-    needs: [macos-x86_64, macos-arm64, windows-x86_64, windows-arm64]
+    needs: [macos-x86_64, macos-arm64, windows-x86_64]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -293,4 +234,4 @@ jobs:
           echo "- macOS x86_64: ${{ needs.macos-x86_64.result }}"
           echo "- macOS arm64:  ${{ needs.macos-arm64.result }}"
           echo "- Windows x86_64: ${{ needs.windows-x86_64.result }}"
-          echo "- Windows arm64:  ${{ needs.windows-arm64.result }}"
+
