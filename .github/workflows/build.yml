@@ -50,13 +50,14 @@ jobs:
           BREW_PREFIX=/usr/local
           echo "CPPFLAGS=-I${BREW_PREFIX}/include" >> $GITHUB_ENV
           echo "LDFLAGS=-L${BREW_PREFIX}/lib" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=${BREW_PREFIX}/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
           echo "PATH=${BREW_PREFIX}/bin:${PATH}" >> $GITHUB_ENV
 
       - name: Configure waf (x86_64 macOS)
         env:
           CC: gcc-15
           CXX: g++-15
+          # Homebrew pkg-config needs to find brew-installed .pc files
+          PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
         run: |
           python3 waf configure \
             --program-name="Nebula Bulldog" \
@@ -115,13 +116,14 @@ jobs:
           BREW_PREFIX=/opt/homebrew
           echo "CPPFLAGS=-I${BREW_PREFIX}/include" >> $GITHUB_ENV
           echo "LDFLAGS=-L${BREW_PREFIX}/lib" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=${BREW_PREFIX}/lib/pkgconfig:/opt/homebrew/lib/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
           echo "PATH=${BREW_PREFIX}/bin:${PATH}" >> $GITHUB_ENV
 
       - name: Configure waf (arm64 macOS)
         env:
           CC: gcc-15
           CXX: g++-15
+          # Homebrew pkg-config needs to find brew-installed .pc files
+          PKG_CONFIG_PATH: /opt/homebrew/lib/pkgconfig
         run: |
           python3 waf configure \
             --program-name="Nebula Bulldog" \
@@ -191,6 +193,10 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
+          # Ensure MinGW tools are on PATH (setup-msys2 with minimal path-type
+          # only adds the msys2 root, not the mingw bin directory)
+          export PATH="/ucrt64/bin:$PATH"
+          which gcc
           python waf configure \
             --program-name="Nebula Bulldog" \
             --dist-target=mingw \
