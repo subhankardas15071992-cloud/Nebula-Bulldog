@@ -39,21 +39,24 @@ jobs:
         run: |
           brew update
           brew install \
-            autoconf automake libtool pkg-config llvm \
+            gcc autoconf automake libtool pkg-config \
             glib glibmm gtkmm3 liblo taglib libarchive libsndfile libusb \
             rubberband vamp-plugin-sdk fftw curl boost \
             jsoncpp lilv serd sord sratom lrdf suil \
             xz gettext intltool
 
-      - name: Export Homebrew paths (x86_64)
+      - name: Export Homebrew build environment (x86_64)
         run: |
           BREW_PREFIX=/usr/local
           echo "CPPFLAGS=-I${BREW_PREFIX}/include" >> $GITHUB_ENV
           echo "LDFLAGS=-L${BREW_PREFIX}/lib" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=${BREW_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
-          echo "PATH=${BREW_PREFIX}/opt/llvm/bin:${PATH}" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${BREW_PREFIX}/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
+          echo "PATH=${BREW_PREFIX}/bin:${PATH}" >> $GITHUB_ENV
 
       - name: Configure waf (x86_64 macOS)
+        env:
+          CC: gcc-15
+          CXX: g++-15
         run: |
           python3 waf configure \
             --program-name="Nebula Bulldog" \
@@ -101,21 +104,24 @@ jobs:
         run: |
           brew update
           brew install \
-            autoconf automake libtool pkg-config llvm \
+            gcc autoconf automake libtool pkg-config \
             glib glibmm gtkmm3 liblo taglib libarchive libsndfile libusb \
             rubberband vamp-plugin-sdk fftw curl boost \
             jsoncpp lilv serd sord sratom lrdf suil \
             xz gettext intltool
 
-      - name: Export Homebrew paths (arm64)
+      - name: Export Homebrew build environment (arm64)
         run: |
           BREW_PREFIX=/opt/homebrew
           echo "CPPFLAGS=-I${BREW_PREFIX}/include" >> $GITHUB_ENV
           echo "LDFLAGS=-L${BREW_PREFIX}/lib" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=${BREW_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}" >> $GITHUB_ENV
-          echo "PATH=${BREW_PREFIX}/opt/llvm/bin:${PATH}" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${BREW_PREFIX}/lib/pkgconfig:/opt/homebrew/lib/pkgconfig:/usr/lib/pkgconfig" >> $GITHUB_ENV
+          echo "PATH=${BREW_PREFIX}/bin:${PATH}" >> $GITHUB_ENV
 
       - name: Configure waf (arm64 macOS)
+        env:
+          CC: gcc-15
+          CXX: g++-15
         run: |
           python3 waf configure \
             --program-name="Nebula Bulldog" \
@@ -148,7 +154,7 @@ jobs:
           retention-days: 7
 
   #
-  # Windows x86_64 — windows-latest (UCRT64 MinGW build)
+  # Windows x86_64 — windows-latest (UCRT64 MinGW native build)
   #
   windows-x86_64:
     runs-on: windows-latest
@@ -180,6 +186,10 @@ jobs:
 
       - name: Configure waf (Windows x86_64 MinGW)
         shell: msys2 {0}
+        env:
+          # Force waf to use the MinGW gcc/g++ instead of MSVC cl.exe
+          CC: gcc
+          CXX: g++
         run: |
           python waf configure \
             --program-name="Nebula Bulldog" \
@@ -211,10 +221,10 @@ jobs:
           retention-days: 7
 
   #
-  # Windows arm64 — windows-11-arm (native ARM64 UCRT build)
+  # Windows arm64 — ubuntu-latest (cross-compile to Windows ARM64)
   #
   windows-arm64:
-    runs-on: windows-11-arm
+    runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
       - name: Checkout repository
@@ -223,26 +233,20 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Set up MSYS2 (UCRT64 arm64)
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: ucrt64
-          update: true
-          install: >
-            base-devel git python mercurial
-            mingw-w64-ucrt-aarch64-toolchain
-            mingw-w64-ucrt-aarch64-pkgconf
-            mingw-w64-ucrt-aarch64-glib2
-            mingw-w64-ucrt-aarch64-curl
-            mingw-w64-ucrt-aarch64-boost
-            mingw-w64-ucrt-aarch64-fftw
-            mingw-w64-ucrt-aarch64-libarchive
-            mingw-w64-ucrt-aarch64-libsndfile
-            mingw-w64-ucrt-aarch64-taglib
-            mingw-w64-ucrt-aarch64-gettext
+      - name: Install Windows ARM64 cross-compilation toolchain
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            g++-mingw-w64-aarch64 \
+            pkg-config \
+            autoconf automake libtool \
+            git python3 mercurial
 
-      - name: Configure waf (Windows arm64 MinGW)
-        shell: msys2 {0}
+      - name: Configure waf (Windows arm64 cross-compile)
+        env:
+          CC: aarch64-w64-mingw32-gcc
+          CXX: aarch64-w64-mingw32-g++
+          PKG_CONFIG_LIBDIR: /usr/aarch64-w64-mingw32/lib/pkgconfig
         run: |
           python waf configure \
             --program-name="Nebula Bulldog" \
@@ -253,18 +257,20 @@ jobs:
             --no-nls \
             --internal-shared-libs
 
-      - name: Build Nebula Bulldog (Windows arm64)
-        shell: msys2 {0}
+      - name: Build Nebula Bulldog (Windows arm64 cross-compile)
+        env:
+          CC: aarch64-w64-mingw32-gcc
+          CXX: aarch64-w64-mingw32-g++
         run: |
           python waf build -j$(nproc)
 
-      - name: Locate Windows binary
+      - name: Locate Windows ARM64 binary
         id: locate
-        shell: msys2 {0}
         run: |
           BIN=$(find build -maxdepth 3 -type f \( -name 'nebula-bulldog-*.exe' -o -name 'ardour-*.exe' \) | head -n1)
           echo "binary=$BIN" >> $GITHUB_OUTPUT
           ls -lh "$BIN"
+          file "$BIN"
 
       - name: Upload Windows arm64 artifact
         uses: actions/upload-artifact@v4
