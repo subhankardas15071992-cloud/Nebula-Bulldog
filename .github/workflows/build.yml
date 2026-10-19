@@ -1,0 +1,291 @@
+name: Build Nebula Bulldog
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag or SHA to build'
+        required: false
+        default: ''
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROGRAM_NAME: Nebula Bulldog
+  # waf needs a full clone for `git describe` versioning; fetch all tags/branches
+  FETCH_DEPTH: 0
+
+jobs:
+  #
+  # macOS x86_64 — macOS-15-intel (native Intel builder)
+  #
+  macos-x86_64:
+    runs-on: macos-15-intel
+    timeout-minutes: 180
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install macOS build dependencies
+        run: |
+          brew update
+          brew install \
+            autoconf automake libtool pkg-config \
+            glib glibmm gtkmm3 liblo taglib libarchive libsndfile libusb \
+            rubberband vamp-plugin-sdk fftw curl boost \
+            jsoncpp lilv serd sord sratom lrdf suil \
+            xz gettext intltool || true
+
+      - name: Configure waf (x86_64 macOS)
+        run: |
+          python3 waf configure \
+            --program-name="Nebula Bulldog" \
+            --dist-target=auto \
+            --no-phone-home \
+            --no-dr-mingw \
+            --no-lxvst --no-vst3 --no-lrdf \
+            --no-nls \
+            --internal-shared-libs
+
+      - name: Build Nebula Bulldog (x86_64 macOS)
+        run: |
+          python3 waf build -j$(sysctl -n hw.ncpu)
+
+      - name: Locate macOS binary
+        id: locate
+        run: |
+          BIN=$(find build -maxdepth 3 -type f -name 'nebula-bulldog-*' -o -name 'ardour-*' | head -n1)
+          echo "binary=$BIN" >> $GITHUB_OUTPUT
+          ls -lh "$BIN"
+
+      - name: Upload macOS x86_64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebula-bulldog-macos-x86_64
+          path: ${{ steps.locate.outputs.binary }}
+          retention-days: 7
+
+  #
+  # macOS arm64 — macOS-latest (native Apple Silicon builder)
+  #
+  macos-arm64:
+    runs-on: macos-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install macOS build dependencies
+        run: |
+          brew update
+          brew install \
+            autoconf automake libtool pkg-config \
+            glib glibmm gtkmm3 liblo taglib libarchive libsndfile libusb \
+            rubberband vamp-plugin-sdk fftw curl boost \
+            jsoncpp lilv serd sord sratom lrdf suil \
+            xz gettext intltool || true
+
+      - name: Configure waf (arm64 macOS)
+        run: |
+          python3 waf configure \
+            --program-name="Nebula Bulldog" \
+            --dist-target=auto \
+            --arm64 \
+            --no-phone-home \
+            --no-dr-mingw \
+            --no-lxvst --no-vst3 --no-lrdf \
+            --no-nls \
+            --internal-shared-libs
+
+      - name: Build Nebula Bulldog (arm64 macOS)
+        run: |
+          python3 waf build -j$(sysctl -n hw.ncpu)
+
+      - name: Locate macOS binary
+        id: locate
+        run: |
+          BIN=$(find build -maxdepth 3 -type f \( -name 'nebula-bulldog-*' -o -name 'ardour-*' \) | head -n1)
+          echo "binary=$BIN" >> $GITHUB_OUTPUT
+          ls -lh "$BIN"
+          file "$BIN"
+
+      - name: Upload macOS arm64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebula-bulldog-macos-arm64
+          path: ${{ steps.locate.outputs.binary }}
+          retention-days: 7
+
+  #
+  # Windows x86_64 — windows-latest (MinGW cross/native build)
+  #
+  windows-x86_64:
+    runs-on: windows-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >
+            base-devel git python mercurial
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-glibmm
+            mingw-w64-x86_64-gtkmm3
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-liblo
+            mingw-w64-x86_64-taglib
+            mingw-w64-x86_64-libarchive
+            mingw-w64-x86_64-libsndfile
+            mingw-w64-x86_64-rubberband
+            mingw-w64-x86_64-fftw
+            mingw-w64-x86_64-curl
+            mingw-w64-x86_64-boost
+            mingw-w64-x86_64-lilv
+            mingw-w64-x86_64-serd
+            mingw-w64-x86_64-sord
+            mingw-w64-x86_64-sratom
+            mingw-w64-x86_64-lrdf
+            mingw-w64-x86_64-suil
+            mingw-w64-x86_64-gettext
+            mingw-w64-x86_64-intltool
+
+      - name: Configure waf (Windows x86_64 MinGW)
+        shell: msys2 {0}
+        run: |
+          python waf configure \
+            --program-name="Nebula Bulldog" \
+            --dist-target=mingw \
+            --no-phone-home \
+            --no-dr-mingw \
+            --no-lxvst --no-vst3 --no-lrdf \
+            --no-nls \
+            --internal-shared-libs
+
+      - name: Build Nebula Bulldog (Windows x86_64)
+        shell: msys2 {0}
+        run: |
+          python waf build -j$(nproc)
+
+      - name: Locate Windows binary
+        id: locate
+        shell: msys2 {0}
+        run: |
+          BIN=$(find build -maxdepth 3 -type f \( -name 'nebula-bulldog-*.exe' -o -name 'ardour-*.exe' \) | head -n1)
+          echo "binary=$BIN" >> $GITHUB_OUTPUT
+          ls -lh "$BIN"
+
+      - name: Upload Windows x86_64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebula-bulldog-windows-x86_64
+          path: ${{ steps.locate.outputs.binary }}
+          retention-days: 7
+
+  #
+  # Windows arm64 — windows-11-arm (native ARM64 builder)
+  #
+  windows-arm64:
+    runs-on: windows-11-arm
+    timeout-minutes: 180
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >
+            base-devel git python mercurial
+            mingw-w64-aarch64-toolchain
+            mingw-w64-aarch64-glib2
+            mingw-w64-aarch64-glibmm
+            mingw-w64-aarch64-gtkmm3
+            mingw-w64-aarch64-pkgconf
+            mingw-w64-aarch64-liblo
+            mingw-w64-aarch64-taglib
+            mingw-w64-aarch64-libarchive
+            mingw-w64-aarch64-libsndfile
+            mingw-w64-aarch64-rubberband
+            mingw-w64-aarch64-fftw
+            mingw-w64-aarch64-curl
+            mingw-w64-aarch64-boost
+            mingw-w64-aarch64-lilv
+            mingw-w64-aarch64-serd
+            mingw-w64-aarch64-sord
+            mingw-w64-aarch64-sratom
+            mingw-w64-aarch64-lrdf
+            mingw-w64-aarch64-suil
+            mingw-w64-aarch64-gettext
+            mingw-w64-aarch64-intltool
+
+      - name: Configure waf (Windows arm64 MinGW)
+        shell: msys2 {0}
+        run: |
+          python waf configure \
+            --program-name="Nebula Bulldog" \
+            --dist-target=mingw \
+            --no-phone-home \
+            --no-dr-mingw \
+            --no-lxvst --no-vst3 --no-lrdf \
+            --no-nls \
+            --internal-shared-libs
+
+      - name: Build Nebula Bulldog (Windows arm64)
+        shell: msys2 {0}
+        run: |
+          python waf build -j$(nproc)
+
+      - name: Locate Windows binary
+        id: locate
+        shell: msys2 {0}
+        run: |
+          BIN=$(find build -maxdepth 3 -type f \( -name 'nebula-bulldog-*.exe' -o -name 'ardour-*.exe' \) | head -n1)
+          echo "binary=$BIN" >> $GITHUB_OUTPUT
+          ls -lh "$BIN"
+
+      - name: Upload Windows arm64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebula-bulldog-windows-arm64
+          path: ${{ steps.locate.outputs.binary }}
+          retention-days: 7
+
+  #
+  # Summary: list all produced artifacts
+  #
+  artifacts-summary:
+    needs: [macos-x86_64, macos-arm64, windows-x86_64, windows-arm64]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Print artifact summary
+        run: |
+          echo "Nebula Bulldog build artifacts:"
+          echo "- macOS x86_64: ${{ needs.macos-x86_64.result }}"
+          echo "- macOS arm64:  ${{ needs.macos-arm64.result }}"
+          echo "- Windows x86_64: ${{ needs.windows-x86_64.result }}"
+          echo "- Windows arm64:  ${{ needs.windows-arm64.result }}"
